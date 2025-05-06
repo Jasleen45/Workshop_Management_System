@@ -8,6 +8,7 @@ import java.util.*;
 public class EmployeeService {
     private Map<String, Employee> employees = new HashMap<>();
     private final String FILE_PATH = "data/employees.txt";
+    private int nextEmployeeId = 1;
     
     // Create data directory if it doesn't exist
     private void ensureDataDirectoryExists() {
@@ -19,6 +20,25 @@ public class EmployeeService {
         } catch (Exception e) {
             System.err.println("Error creating data directory: " + e.getMessage());
         }
+    }
+
+    // Generate next employee ID
+    private String generateEmployeeId() {
+        // Find the largest existing ID to ensure we don't have collisions
+        for (String empId : employees.keySet()) {
+            try {
+                int idNum = Integer.parseInt(empId);
+                if (idNum >= nextEmployeeId) {
+                    nextEmployeeId = idNum + 1;
+                }
+            } catch (NumberFormatException e) {
+                // Skip non-numeric IDs
+            }
+        }
+        
+        String newId = String.valueOf(nextEmployeeId);
+        nextEmployeeId++;
+        return newId;
     }
 
     // Load employees from file
@@ -76,7 +96,25 @@ public class EmployeeService {
         }
     }
 
-    // Add employee
+    // Add employee with auto-generated ID
+    public void addEmployee(String name, String role) {
+        String empId = generateEmployeeId();
+        
+        System.out.println("\n===== ADDING EMPLOYEE =====");
+        System.out.println("ID: " + empId + " (auto-generated)");
+        System.out.println("Name: " + name);
+        System.out.println("Role: " + role);
+        
+        Employee employee = new Employee(empId, name, role);
+        employees.put(empId, employee);
+        saveEmployees(); // Save changes to file immediately
+        
+        System.out.println("\n===== SUCCESS =====");
+        System.out.println("Employee " + name + " (ID: " + empId + ") has been added successfully!");
+        System.out.println("Total employees: " + employees.size());
+    }
+    
+    // Keep the original method for compatibility with existing code
     public void addEmployee(String empId, String name, String role) {
         System.out.println("\n===== ADDING EMPLOYEE =====");
         System.out.println("ID: " + empId);

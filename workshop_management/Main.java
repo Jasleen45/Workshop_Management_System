@@ -47,32 +47,47 @@ public class Main {
         while (true) {
             System.out.println("\n===== Workshop Management System =====");
             System.out.println("Current user: " + Authentication.getCurrentUserRole());
-            System.out.println("1. Add Employee (Admin only)");
-            System.out.println("2. Assign Task (Admin/Manager only)");
+            System.out.println("=======================================");
+            
+            // Print menu items
+            System.out.println("1. Add Employee " + 
+                              (Authentication.isAdmin() ? "" : "(Admin only)"));
+            System.out.println("2. Assign Task " + 
+                              (Authentication.hasManagerAccess() ? "" : "(Admin/Manager only)"));
             System.out.println("3. View Tasks");
             System.out.println("4. View Employees");
             System.out.println("5. View Inventory");
-            System.out.println("6. Edit Inventory (Admin/Manager only)");
+            System.out.println("6. Edit Inventory " + 
+                              (Authentication.hasManagerAccess() ? "" : "(Admin/Manager only)"));
             System.out.println("7. Generate Task Report");
-            System.out.println("8. Logout");
-            System.out.println("9. Exit");
+            System.out.println("8. Search Tasks by Priority (Binary Search)");
+            System.out.println("9. Update Task Status " + 
+                              (Authentication.isAdminOrManager() ? "" : "(Admin/Manager only)"));
+            System.out.println("10. View Task History " + 
+                              (Authentication.isAdminOrManager() ? "" : "(Admin/Manager only)"));
+            System.out.println("11. Logout");
+            System.out.println("12. Exit");
+            
+            System.out.println("=======================================");
             System.out.print("Enter your choice: ");
             
-            int choice = scanner.nextInt();
-            scanner.nextLine();  // Consume newline
+            int choice;
+            try {
+                choice = scanner.nextInt();
+                scanner.nextLine();  // Consume newline
+            } catch (InputMismatchException e) {
+                scanner.nextLine(); // Clear invalid input
+                System.out.println("Invalid input! Please enter a number.");
+                System.out.println("\nPress Enter to continue...");
+                scanner.nextLine();
+                continue;
+            }
             
             switch (choice) {
                 case 1: // Add Employee (Admin only)
                     if (Authentication.isAdmin()) {
                         System.out.println("\n===== Add Employee =====");
                         System.out.println("(Enter '0' at any prompt to go back to main menu)");
-                        
-                        System.out.print("Enter employee ID: ");
-                        String empId = scanner.nextLine();
-                        if (empId.equals("0")) {
-                            System.out.println("Operation canceled. Returning to main menu...");
-                            break;
-                        }
                         
                         System.out.print("Enter employee name: ");
                         String name = scanner.nextLine();
@@ -88,7 +103,8 @@ public class Main {
                             break;
                         }
                         
-                        employeeService.addEmployee(empId, name, role);
+                        // Use the new method that automatically generates an ID
+                        employeeService.addEmployee(name, role);
                     } else {
                         System.out.println("ACCESS DENIED: Only Administrators can add employees.");
                     }
@@ -103,14 +119,10 @@ public class Main {
                         System.out.println("\n===== Assign Task =====");
                         System.out.println("(Enter '0' at any prompt to go back to main menu)");
                         
-                        System.out.print("Enter Task ID: ");
-                        String taskId = scanner.nextLine();
-                        if (taskId.equals("0")) {
-                            System.out.println("Operation canceled. Returning to main menu...");
-                            break;
-                        }
+                        // Show all employees first so the user can see the available employee IDs
+                        employeeService.viewEmployees();
                         
-                        System.out.print("Enter Task description: ");
+                        System.out.print("\nEnter Task description: ");
                         String taskDesc = scanner.nextLine();
                         if (taskDesc.equals("0")) {
                             System.out.println("Operation canceled. Returning to main menu...");
@@ -139,11 +151,8 @@ public class Main {
                             break;
                         }
                         
-                        // Create Task with default "To Do" status
-                        Task task = new Task(taskId, taskDesc, assignedTo, Task.STATUS_TODO, priority);
-                        
-                        // Use the improved assignTask method that validates employee existence
-                        taskService.assignTask(task, employeeService);
+                        // Use the new method that automatically generates a task ID
+                        taskService.assignTask(taskDesc, assignedTo, priority, employeeService);
                     } else {
                         System.out.println("ACCESS DENIED: Only Administrators and Managers can assign tasks.");
                     }
@@ -314,8 +323,100 @@ public class Main {
                     System.out.println("\nPress Enter to continue...");
                     scanner.nextLine();
                     break;
+                
+                case 8: // Search Tasks by Priority using Binary Search (All roles)
+                    System.out.println("\n===== Search Tasks by Priority (Binary Search) =====");
+                    System.out.print("Enter priority to search (1=High, 2=Medium, 3=Low): ");
+                    int searchPriority;
+                    try {
+                        searchPriority = scanner.nextInt();
+                        scanner.nextLine();  // Consume newline
+                    } catch (InputMismatchException e) {
+                        scanner.nextLine(); // Clear invalid input
+                        System.out.println("Invalid priority. Operation canceled.");
+                        break;
+                    }
                     
-                case 8: // Logout
+                    // Use binary search to find and display tasks with the given priority
+                    taskService.printTasksByPriority(searchPriority, employeeService);
+                    
+                    // Add a pause so user can see the results
+                    System.out.println("\nPress Enter to continue...");
+                    scanner.nextLine();
+                    break;
+                    
+                case 9: // Update Task Status (Admin/Manager only)
+                    if (Authentication.isAdminOrManager()) {
+                        System.out.println("\n===== Update Task Status =====");
+                        
+                        // Show all tasks first so the user can see the available task IDs
+                        System.out.println("\nAvailable tasks:");
+                        taskService.printTasks(employeeService);
+                        
+                        System.out.print("\nEnter task ID to update: ");
+                        String updateTaskId = scanner.nextLine();
+                        
+                        System.out.println("\nSelect new status:");
+                        System.out.println("1. To Do");
+                        System.out.println("2. In Progress");
+                        System.out.println("3. Completed");
+                        System.out.print("Enter your choice: ");
+                        
+                        int statusChoice = 0;
+                        try {
+                            statusChoice = scanner.nextInt();
+                            scanner.nextLine();  // Consume newline
+                        } catch (InputMismatchException e) {
+                            scanner.nextLine(); // Clear invalid input
+                            System.out.println("Invalid choice. Operation canceled.");
+                            break;
+                        }
+                        
+                        switch (statusChoice) {
+                            case 1:
+                                taskService.markTaskAsTodo(updateTaskId);
+                                break;
+                            case 2:
+                                taskService.markTaskAsInProgress(updateTaskId);
+                                break;
+                            case 3:
+                                taskService.markTaskAsCompleted(updateTaskId);
+                                break;
+                            default:
+                                System.out.println("Invalid status choice.");
+                        }
+                        
+                        System.out.println("\nPress Enter to continue...");
+                        scanner.nextLine();
+                    } else {
+                        System.out.println("ACCESS DENIED: Only Administrators and Managers can update task status.");
+                        System.out.println("\nPress Enter to continue...");
+                        scanner.nextLine();
+                    }
+                    break;
+                    
+                case 10: // View Task History (Admin/Manager only)
+                    if (Authentication.isAdminOrManager()) {
+                        System.out.println("\n===== View Task History =====");
+                        System.out.print("Enter task ID (or 'all' to see recent history): ");
+                        String historyTaskId = scanner.nextLine();
+                        
+                        if (historyTaskId.equalsIgnoreCase("all")) {
+                            taskService.viewRecentHistory(10); // Show last 10 task history entries
+                        } else {
+                            taskService.viewTaskHistory(historyTaskId);
+                        }
+                        
+                        System.out.println("\nPress Enter to continue...");
+                        scanner.nextLine();
+                    } else {
+                        System.out.println("ACCESS DENIED: Only Administrators and Managers can view task history.");
+                        System.out.println("\nPress Enter to continue...");
+                        scanner.nextLine();
+                    }
+                    break;
+                    
+                case 11: // Logout
                     System.out.print("Are you sure you want to logout? (Y/N): ");
                     String logoutConfirm = scanner.nextLine();
                     if (!logoutConfirm.equalsIgnoreCase("Y")) {
@@ -353,7 +454,7 @@ public class Main {
                     }
                     break;
 
-                case 9: // Exit
+                case 12: // Exit
                     System.out.print("Are you sure you want to exit? All unsaved changes will be saved. (Y/N): ");
                     String exitConfirm = scanner.nextLine();
                     if (!exitConfirm.equalsIgnoreCase("Y")) {

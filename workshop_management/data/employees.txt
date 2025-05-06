@@ -1,3 +1,1 @@
-1,jivansh,Admin
-2,2,Worker
-3,jasleen,Worker
+1,jivansh,worker
