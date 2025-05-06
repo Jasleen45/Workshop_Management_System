@@ -39,6 +39,11 @@ public class Authentication {
         return ROLE_MANAGER.equals(currentUserRole);
     }
     
+    // Check if current user has admin or manager privileges
+    public static boolean isAdminOrManager() {
+        return isAdmin() || isManager();
+    }
+    
     // Check if current user has at least manager privileges (manager or admin)
     public static boolean hasManagerAccess() {
         return isAdmin() || isManager();
