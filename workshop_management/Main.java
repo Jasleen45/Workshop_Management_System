@@ -11,7 +11,6 @@ public class Main {
         EmployeeService employeeService = new EmployeeService();
         TaskService taskService = new TaskService();
         InventoryService inventoryService = new InventoryService();
-        ReportGenerator reportGenerator = new ReportGenerator();
         
         // Load data from files
         employeeService.loadEmployees();
@@ -59,14 +58,13 @@ public class Main {
             System.out.println("5. View Inventory");
             System.out.println("6. Edit Inventory " + 
                               (Authentication.hasManagerAccess() ? "" : "(Admin/Manager only)"));
-            System.out.println("7. Generate Task Report");
-            System.out.println("8. Search Tasks by Priority (Binary Search)");
-            System.out.println("9. Update Task Status " + 
+            System.out.println("7. Search Tasks by Priority");
+            System.out.println("8. Update Task Status " + 
                               (Authentication.isAdminOrManager() ? "" : "(Admin/Manager only)"));
-            System.out.println("10. View Task History " + 
+            System.out.println("9. View Task History " + 
                               (Authentication.isAdminOrManager() ? "" : "(Admin/Manager only)"));
-            System.out.println("11. Logout");
-            System.out.println("12. Exit");
+            System.out.println("10. Logout");
+            System.out.println("11. Exit");
             
             System.out.println("=======================================");
             System.out.print("Enter your choice: ");
@@ -306,26 +304,8 @@ public class Main {
                     }
                     break;
 
-                case 7: // Generate Task Report (All roles)
-                    System.out.println("\n===== Generate Task Report =====");
-                    System.out.print("Generate report? (Y/N): ");
-                    String confirm = scanner.nextLine();
-                    if (confirm.equalsIgnoreCase("N")) {
-                        System.out.println("Report generation canceled.");
-                        break;
-                    }
-                    
-                    List<Task> tasks = taskService.getAllTasks();
-                    reportGenerator.generateTaskReport(tasks);
-                    System.out.println("Task report generated and saved to task_report.txt");
-                    
-                    // Add a pause so user can see the confirmation message
-                    System.out.println("\nPress Enter to continue...");
-                    scanner.nextLine();
-                    break;
-                
-                case 8: // Search Tasks by Priority using Binary Search (All roles)
-                    System.out.println("\n===== Search Tasks by Priority (Binary Search) =====");
+                case 7: // Search Tasks by Priority (All roles)
+                    System.out.println("\n===== Search Tasks by Priority =====");
                     System.out.print("Enter priority to search (1=High, 2=Medium, 3=Low): ");
                     int searchPriority;
                     try {
@@ -345,7 +325,7 @@ public class Main {
                     scanner.nextLine();
                     break;
                     
-                case 9: // Update Task Status (Admin/Manager only)
+                case 8: // Update Task Status (Admin/Manager only)
                     if (Authentication.isAdminOrManager()) {
                         System.out.println("\n===== Update Task Status =====");
                         
@@ -395,7 +375,7 @@ public class Main {
                     }
                     break;
                     
-                case 10: // View Task History (Admin/Manager only)
+                case 9: // View Task History (Admin/Manager only)
                     if (Authentication.isAdminOrManager()) {
                         System.out.println("\n===== View Task History =====");
                         System.out.print("Enter task ID (or 'all' to see recent history): ");
@@ -416,7 +396,7 @@ public class Main {
                     }
                     break;
                     
-                case 11: // Logout
+                case 10: // Logout
                     System.out.print("Are you sure you want to logout? (Y/N): ");
                     String logoutConfirm = scanner.nextLine();
                     if (!logoutConfirm.equalsIgnoreCase("Y")) {
@@ -454,7 +434,7 @@ public class Main {
                     }
                     break;
 
-                case 12: // Exit
+                case 11: // Exit
                     System.out.print("Are you sure you want to exit? All unsaved changes will be saved. (Y/N): ");
                     String exitConfirm = scanner.nextLine();
                     if (!exitConfirm.equalsIgnoreCase("Y")) {
